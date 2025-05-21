@@ -15,24 +15,24 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Building the application..."
-                sh 'docker build -t my-python-app .'
+                bat 'docker build -t my-python-app .'
             }
         }
 
         stage('Test') {
             steps {
                 echo "Running tests..."
-                // Exemple : sh 'pytest tests/'
+                // Exemple : bat 'pytest tests/'
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Pubat to Docker Hub') {
             steps {
-                echo "Pushing the Docker image to Docker Hub..."
-                sh '''
+                echo "Pubating the Docker image to Docker Hub..."
+                bat '''
                     docker login -u $DOCKER_HUB_CREDENTIALS_USR -p $DOCKER_HUB_CREDENTIALS_PSW
                     docker tag my-python-app $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest
-                    docker push $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest
+                    docker pubat $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest
                 '''
             }
         }
@@ -40,11 +40,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Deploying the application..."
-                sh '''
-                    ssh user@remote-server "docker pull $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest"
-                    ssh user@remote-server "docker stop my-python-app || true"
-                    ssh user@remote-server "docker rm my-python-app || true"
-                    ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest"
+                bat '''
+                    sbat user@remote-server "docker pull $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest"
+                    sbat user@remote-server "docker stop my-python-app || true"
+                    sbat user@remote-server "docker rm my-python-app || true"
+                    sbat user@remote-server "docker run -d -p 5000:5000 --name my-python-app $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest"
                 '''
             }
         }
