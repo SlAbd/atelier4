@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        // Définir les variables d'environnement ici ne suffit pas pour utiliser username/password
-        // Utilisation correcte avec withCredentials plus bas
-    }
-
     stages {
         stage('Cloner le repo') {
             steps {
@@ -43,7 +38,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "Deploying the application..."
-                // Remplacer `sbat` par `ssh` ou autre outil correct si tu fais un déploiement distant
                 bat '''
                     ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
                     ssh user@remote-server "docker stop my-python-app || true"
