@@ -37,15 +37,15 @@ pipeline {
 
 
         stage('Deploy') {
-            steps {
-                echo "Deploying the application..."
-                bat '''
-                    ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
-                    ssh user@remote-server "docker stop my-python-app || true"
-                    ssh user@remote-server "docker rm my-python-app || true"
-                    ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
-                '''
-            }
+    steps {
+        sshagent (credentials: ['ssh-remote-server-cred']) {
+            bat '''
+                ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
+                ssh user@remote-server "docker stop my-python-app || true"
+                ssh user@remote-server "docker rm my-python-app || true"
+                ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
+            '''
         }
     }
+}
 }
