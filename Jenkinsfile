@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        // Définir les variables d'environnement ici ne suffit pas pour utiliser username/password
+        // Utilisation correcte avec withCredentials plus bas
     }
 
     stages {
@@ -26,25 +27,28 @@ pipeline {
             }
         }
 
-        stage('Pubat to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
-                echo "Pubating the Docker image to Docker Hub..."
-                bat '''
-                    docker login -u $DOCKER_HUB_CREDENTIALS_USR -p $DOCKER_HUB_CREDENTIALS_PSW
-                    docker tag my-python-app $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest
-                    docker pubat $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest
-                '''
+                echo "Pushing the Docker image to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_CREDENTIALS_USR', passwordVariable: 'DOCKER_HUB_CREDENTIALS_PSW')]) {
+                    bat '''
+                        docker login -u %DOCKER_HUB_CREDENTIALS_USR% -p %DOCKER_HUB_CREDENTIALS_PSW%
+                        docker tag my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
+                        docker push %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
+                    '''
+                }
             }
         }
 
         stage('Deploy') {
             steps {
                 echo "Deploying the application..."
+                // Remplacer `sbat` par `ssh` ou autre outil correct si tu fais un déploiement distant
                 bat '''
-                    sbat user@remote-server "docker pull $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest"
-                    sbat user@remote-server "docker stop my-python-app || true"
-                    sbat user@remote-server "docker rm my-python-app || true"
-                    sbat user@remote-server "docker run -d -p 5000:5000 --name my-python-app $DOCKER_HUB_CREDENTIALS_USR/my-python-app:latest"
+                    ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
+                    ssh user@remote-server "docker stop my-python-app || true"
+                    ssh user@remote-server "docker rm my-python-app || true"
+                    ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
                 '''
             }
         }
