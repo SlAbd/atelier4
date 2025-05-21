@@ -22,30 +22,30 @@ pipeline {
             }
         }
 
-       stage('Push to Docker Hub') {
-        steps {
-            echo "Pushing the Docker image to Docker Hub..."
-            withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_CREDENTIALS_USR', passwordVariable: 'DOCKER_HUB_CREDENTIALS_PSW')]) {
-                bat '''
-                    echo %DOCKER_HUB_CREDENTIALS_PSW% | docker login -u %DOCKER_HUB_CREDENTIALS_USR% --password-stdin
-                    docker tag my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
-                    docker push %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
-                '''
+        stage('Push to Docker Hub') {
+            steps {
+                echo "Pushing the Docker image to Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_CREDENTIALS_USR', passwordVariable: 'DOCKER_HUB_CREDENTIALS_PSW')]) {
+                    bat '''
+                        echo %DOCKER_HUB_CREDENTIALS_PSW% | docker login -u %DOCKER_HUB_CREDENTIALS_USR% --password-stdin
+                        docker tag my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
+                        docker push %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
+                    '''
+                }
             }
         }
-    }
-
 
         stage('Deploy') {
-    steps {
-        sshagent (credentials: ['ssh-remote-server-cred']) {
-            bat '''
-                ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
-                ssh user@remote-server "docker stop my-python-app || true"
-                ssh user@remote-server "docker rm my-python-app || true"
-                ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
-            '''
+            steps {
+                sshagent (credentials: ['ssh-remote-server-cred']) {
+                    bat '''
+                        ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
+                        ssh user@remote-server "docker stop my-python-app || true"
+                        ssh user@remote-server "docker rm my-python-app || true"
+                        ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
+                    '''
+                }
+            }
         }
-    }
-}
-}
+    } // <- fin du bloc stages
+} // <- fin du bloc pipeline
