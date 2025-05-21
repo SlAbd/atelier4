@@ -36,16 +36,15 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sshagent (credentials: ['ssh-remote-server-cred']) {
-                    bat '''
-                        ssh user@remote-server "docker pull %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
-                        ssh user@remote-server "docker stop my-python-app || true"
-                        ssh user@remote-server "docker rm my-python-app || true"
-                        ssh user@remote-server "docker run -d -p 5000:5000 --name my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest"
-                    '''
-                }
-            }
-        }
+  steps {
+    withCredentials([sshUserPrivateKey(credentialsId: 'my-key-id', keyFileVariable: 'SSH_KEY')]) {
+      sh '''
+        chmod 600 $SSH_KEY
+        ssh -i $SSH_KEY user@host 'docker pull sldev03/my-python-app:latest && docker run -d sldev03/my-python-app:latest'
+      '''
+    }
+  }
+}
+
     } // <- fin du bloc stages
 } // <- fin du bloc pipeline
