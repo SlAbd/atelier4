@@ -22,18 +22,19 @@ pipeline {
             }
         }
 
-        stage('Push to Docker Hub') {
-            steps {
-                echo "Pushing the Docker image to Docker Hub..."
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_CREDENTIALS_USR', passwordVariable: 'DOCKER_HUB_CREDENTIALS_PSW')]) {
-                    bat '''
-                        docker login -u %DOCKER_HUB_CREDENTIALS_USR% -p %DOCKER_HUB_CREDENTIALS_PSW%
-                        docker tag my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
-                        docker push %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
-                    '''
-                }
+       stage('Push to Docker Hub') {
+        steps {
+            echo "Pushing the Docker image to Docker Hub..."
+            withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_CREDENTIALS_USR', passwordVariable: 'DOCKER_HUB_CREDENTIALS_PSW')]) {
+                bat '''
+                    echo %DOCKER_HUB_CREDENTIALS_PSW% | docker login -u %DOCKER_HUB_CREDENTIALS_USR% --password-stdin
+                    docker tag my-python-app %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
+                    docker push %DOCKER_HUB_CREDENTIALS_USR%/my-python-app:latest
+                '''
             }
         }
+    }
+
 
         stage('Deploy') {
             steps {
