@@ -36,15 +36,14 @@ pipeline {
         }
 
         stage('Deploy') {
-  steps {
-    withCredentials([sshUserPrivateKey(credentialsId: 'my-key-id', keyFileVariable: 'SSH_KEY')]) {
-      sh '''
-        chmod 600 $SSH_KEY
-        ssh -i $SSH_KEY user@host 'docker pull sldev03/my-python-app:latest && docker run -d sldev03/my-python-app:latest'
-      '''
+            steps {
+                echo "Déploiement local de l'application Docker..."
+                bat '''
+                    docker stop my-python-app || echo "Container not running"
+                    docker rm my-python-app || echo "Container not found"
+                    docker run -d -p 5000:5000 --name my-python-app my-python-app
+                '''
+            }
+        }
     }
-  }
 }
-
-    } // <- fin du bloc stages
-} // <- fin du bloc pipeline
